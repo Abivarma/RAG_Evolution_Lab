@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+*.pyc
+
+# uv
+.uv/
+
+# Data (large files — gitignored, managed via tier strategy)
+data/
+!data/.gitkeep
+results/*/
+!results/.gitkeep
+
+# Indexes
+*.bin
+qdrant_storage/
+
+# Secrets / env
+.env
+*.key
+secrets.toml
+
+# macOS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/

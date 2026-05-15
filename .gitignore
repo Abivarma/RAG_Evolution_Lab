@@ -29,3 +29,6 @@ secrets.toml
 # Editor
 .idea/
 .vscode/
+
+# Logs
+logs/

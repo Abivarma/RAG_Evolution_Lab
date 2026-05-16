@@ -1,0 +1,13 @@
+[bm25]
+k1 = 1.5
+b = 0.75
+top_k = 10
+
+[data]
+abstracts_path = "data/arxiv_abstracts_10k.json"
+index_path = "data/stage_0_bm25_index_10k.json"
+
+[eval]
+benchmark = "ragbench"
+n_samples = 1000
+output_dir = "results/stage_0"

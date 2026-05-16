@@ -47,3 +47,14 @@ def test_retriever_save_load(retriever: BM25Retriever, tmp_path: Path) -> None:
 def test_retriever_top_k_respected(retriever: BM25Retriever) -> None:
     results = retriever.retrieve("neural network", top_k=1)
     assert len(results) == 1
+
+
+def test_retrieve_from_passages() -> None:
+    r = BM25Retriever(k1=1.5, b=0.75)
+    passages = {
+        "0": "neural network attention transformers deep learning",
+        "1": "BM25 keyword retrieval classical algorithm",
+        "2": "RAG combines retrieval with language models",
+    }
+    results = r.retrieve_from_passages("keyword search BM25", passages, top_k=3)
+    assert results[0] == "1", f"Expected '1' first, got {results}"

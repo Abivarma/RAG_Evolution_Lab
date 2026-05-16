@@ -34,6 +34,20 @@ class BM25Retriever:
         ]
         self._bm25 = BM25Okapi(self._tokenized_corpus, k1=self.k1, b=self.b)
 
+    def retrieve_from_passages(self, query: str, passages: dict[str, str], top_k: int = 10) -> list[str]:
+        """Rank the provided passages by BM25 score. For closed-corpus benchmarks like RAGBench.
+
+        passages: dict mapping doc_id -> text
+        Returns: list of doc_ids ranked by relevance
+        """
+        doc_ids = list(passages.keys())
+        tokenized = [self._tokenize(text) for text in passages.values()]
+        bm25 = BM25Okapi(tokenized, k1=self.k1, b=self.b)
+        tokens = self._tokenize(query)
+        scores = bm25.get_scores(tokens)
+        ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+        return [doc_ids[i] for i in ranked[:top_k]]
+
     def retrieve(self, query: str, top_k: int = 10) -> list[str]:
         """Return top_k doc_ids ranked by BM25 score."""
         if self._bm25 is None:

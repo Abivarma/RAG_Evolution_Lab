@@ -8,6 +8,7 @@ import argparse
 import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from shared.eval.datasets import BENCHMARK_LOADERS
 from shared.eval.harness import EvalHarness
@@ -23,6 +24,11 @@ class Stage0Harness(EvalHarness):
 
     def retrieve(self, query: str, top_k: int = 10) -> list[str]:
         return self.retriever.retrieve(query, top_k=top_k)
+
+    def retrieve_item(self, item: dict[str, Any], top_k: int = 10) -> list[str]:
+        if "passages" in item:
+            return self.retriever.retrieve_from_passages(item["query"], item["passages"], top_k=top_k)
+        return self.retriever.retrieve(item["query"], top_k=top_k)
 
     def generate(self, query: str, retrieved_ids: list[str]) -> tuple[str, int, int]:
         # Stage 0 has no LLM — return passage IDs as the "answer"
@@ -40,13 +46,18 @@ def main() -> None:
         cfg = tomllib.load(fh)
 
     index_path = Path(cfg["data"]["index_path"])
-    if not index_path.exists():
+    # Closed-corpus benchmarks (ragbench) carry their own passages per query —
+    # no pre-built arXiv index is needed for those.
+    CLOSED_CORPUS_BENCHMARKS = {"ragbench"}
+    if args.benchmark in CLOSED_CORPUS_BENCHMARKS:
+        retriever = BM25Retriever(k1=cfg["bm25"]["k1"], b=cfg["bm25"]["b"])
+    elif not index_path.exists():
         print(f"Index not found at {index_path}.")
         print("Run: uv run python -m stage_0.indexer")
         raise SystemExit(1)
-
-    print(f"Loading BM25 index from {index_path}...")
-    retriever = BM25Retriever.load(index_path)
+    else:
+        print(f"Loading BM25 index from {index_path}...")
+        retriever = BM25Retriever.load(index_path)
 
     harness = Stage0Harness(retriever)
     queries = BENCHMARK_LOADERS[args.benchmark](n_samples=args.n_samples)

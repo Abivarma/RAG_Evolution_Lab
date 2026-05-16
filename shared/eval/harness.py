@@ -57,6 +57,10 @@ class EvalHarness(ABC):
         """Return a ranked list of doc_ids for the query."""
         ...
 
+    def retrieve_item(self, item: dict[str, Any], top_k: int = 10) -> list[str]:
+        """Retrieve for a full item dict. Override in stages that need passage-level routing."""
+        return self.retrieve(item["query"], top_k=top_k)
+
     @abstractmethod
     def generate(self, query: str, retrieved_ids: list[str]) -> tuple[str, int, int]:
         """Return (answer_text, input_tokens, output_tokens)."""
@@ -75,7 +79,7 @@ class EvalHarness(ABC):
             t0 = time.perf_counter()
             ram_before = proc.memory_info().rss / 1024 / 1024
 
-            retrieved = self.retrieve(item["query"], top_k=top_k)
+            retrieved = self.retrieve_item(item, top_k=top_k)
 
             answer = None
             in_toks = out_toks = 0

@@ -16,6 +16,9 @@ dependencies = [
     "psutil>=5.9",
     "numpy>=1.26",
     "scipy>=1.12",
+    "matplotlib>=3.10.9",
+    "jupyter>=1.1.1",
+    "nbconvert>=7.17.1",
 ]
 
 [dependency-groups]

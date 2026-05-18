@@ -1,6 +1,6 @@
 [embedding]
 model = "BAAI/bge-m3"
-batch_size = 64
+batch_size = 4
 dimension = 1024
 device = "mps"
 
@@ -8,8 +8,8 @@ device = "mps"
 model = "BAAI/bge-reranker-v2-m3"
 top_k_candidates = 50
 top_k_final = 5
-device = "mps"
-batch_size = 32
+device = "cpu"
+batch_size = 16
 
 [hybrid]
 rrf_k = 60

@@ -43,6 +43,9 @@ class BGEEmbedder:
         self._load()
         return self._model.encode([query], normalize_embeddings=True)[0].tolist()
 
+    # Truncate passages to ~6000 chars (~4096 tokens) to avoid OOM on large passages
+    _MAX_PASSAGE_CHARS: int = 6000
+
     def embed_and_rank_passages(
         self, query: str, passages: dict[str, str], top_k: int = 10, batch_size: int = 4
     ) -> list[str]:
@@ -56,7 +59,7 @@ class BGEEmbedder:
 
         self._load()
         doc_ids = list(passages.keys())
-        texts = list(passages.values())
+        texts = [v[: self._MAX_PASSAGE_CHARS] for v in passages.values()]
 
         query_vec = self._model.encode(
             [query], normalize_embeddings=True, batch_size=1, show_progress_bar=False

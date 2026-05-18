@@ -1,0 +1,22 @@
+{
+  "stage": 2,
+  "benchmark": "ragbench",
+  "n_queries": 3,
+  "recall_at_5": 1.0,
+  "recall_at_10": 1.0,
+  "recall_at_20": 1.0,
+  "mrr": 0.4666666666666667,
+  "ndcg_at_10": 0.5912352048230277,
+  "hit_rate_10": 1.0,
+  "latency_p50_ms": 30663.167999999132,
+  "latency_p95_ms": 176398.1506669952,
+  "latency_p99_ms": 176398.1506669952,
+  "total_input_tokens": 0,
+  "total_output_tokens": 0,
+  "peak_ram_mb": 6927.015625,
+  "faithfulness": null,
+  "answer_relevance": null,
+  "context_precision": null,
+  "context_recall": null,
+  "saved_at": "2026-05-18T05:13:41.829341+00:00"
+}

@@ -53,11 +53,24 @@ class HybridRetriever:
         scores = bm25.get_scores(query.lower().split())
         return [doc_ids[i] for i in sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)]
 
+    # Truncate passages to ~6000 chars (~4096 tokens) to avoid OOM on large passages
+    _MAX_PASSAGE_CHARS: int = 6000
+
     def _dense_rank(self, query: str, passages: dict[str, str]) -> list[str]:
         doc_ids = list(passages.keys())
         self.embedder._load()
         q_vec = np.array(self.embedder.embed_query(query))
-        p_vecs = self.embedder._model.encode(list(passages.values()), normalize_embeddings=True)
+        truncated = [v[: self._MAX_PASSAGE_CHARS] for v in passages.values()]
+        p_vecs = self.embedder._model.encode(
+            truncated, normalize_embeddings=True, batch_size=4, show_progress_bar=False
+        )
+        # Free MPS cache after encoding to prevent accumulation across repeated calls
+        try:
+            import torch
+            if hasattr(torch.mps, "empty_cache"):
+                torch.mps.empty_cache()
+        except Exception:
+            pass
         sims = p_vecs @ q_vec
         return [doc_ids[i] for i in sorted(range(len(sims)), key=lambda i: sims[i], reverse=True)]
 

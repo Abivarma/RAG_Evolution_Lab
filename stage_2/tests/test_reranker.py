@@ -10,8 +10,13 @@ def _make_reranker(scores: list[float]) -> BGEReranker:
     r.model_name = "BAAI/bge-reranker-v2-m3"
     r.device = "mps"
     r.top_k = 3
+    r.batch_size = 32
+    r.max_length = 512
+    r.use_fp16 = False
     r._model = MagicMock()
-    r._model.compute_score.return_value = scores
+    r._tokenizer = MagicMock()
+    # Patch _score_pairs to return the provided scores directly
+    r._score_pairs = MagicMock(return_value=scores)
     return r
 
 

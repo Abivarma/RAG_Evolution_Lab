@@ -1,0 +1,22 @@
+{
+  "stage": 0,
+  "benchmark": "ragbench",
+  "n_queries": 50,
+  "recall_at_5": 0.8,
+  "recall_at_10": 0.8,
+  "recall_at_20": 0.8,
+  "mrr": 0.4876666666666667,
+  "ndcg_at_10": 0.5654820586557299,
+  "hit_rate_10": 0.8,
+  "latency_p50_ms": 0.5307910032570362,
+  "latency_p95_ms": 0.9762499976204708,
+  "latency_p99_ms": 1.3086670005577616,
+  "total_input_tokens": 0,
+  "total_output_tokens": 0,
+  "peak_ram_mb": 159.5625,
+  "faithfulness": null,
+  "answer_relevance": null,
+  "context_precision": null,
+  "context_recall": null,
+  "saved_at": "2026-05-16T16:00:53.332439+00:00"
+}

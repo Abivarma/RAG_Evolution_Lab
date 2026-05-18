@@ -13,6 +13,7 @@ data/
 !data/.gitkeep
 results/*/
 !results/.gitkeep
+!results/**/*.json
 
 # Indexes
 *.bin

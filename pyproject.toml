@@ -27,6 +27,11 @@ dev = [
 [tool.hatch.build.targets.wheel]
 packages = ["rag_evolution_lab"]
 
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

@@ -1,0 +1,31 @@
+[embedding]
+model = "BAAI/bge-m3"
+batch_size = 64
+dimension = 1024
+device = "mps"
+
+[qdrant]
+host = "localhost"
+port = 6333
+collection = "arxiv_stage1"
+hnsw_m = 16
+hnsw_ef_construct = 100
+
+[chunking]
+chunk_size = 512
+overlap = 0
+
+[llm]
+model = "qwen2.5:14b"
+temperature = 0.1
+max_tokens = 512
+top_k_context = 5
+
+[data]
+abstracts_path = "data/arxiv_abstracts_10k.json"
+
+[eval]
+benchmark = "ragbench"
+n_samples = 1000
+output_dir = "results/stage_1"
+top_k = 10

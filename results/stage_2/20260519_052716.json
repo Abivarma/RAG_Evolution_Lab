@@ -1,0 +1,22 @@
+{
+  "stage": 2,
+  "benchmark": "scifact",
+  "n_queries": 50,
+  "recall_at_5": 0.839,
+  "recall_at_10": 0.888,
+  "recall_at_20": 0.888,
+  "mrr": 0.8217460317460318,
+  "ndcg_at_10": 0.834155180678975,
+  "hit_rate_10": 0.9,
+  "latency_p50_ms": 76608.7671659916,
+  "latency_p95_ms": 88077.6523329987,
+  "latency_p99_ms": 91546.32145799405,
+  "total_input_tokens": 0,
+  "total_output_tokens": 0,
+  "peak_ram_mb": 3340.921875,
+  "faithfulness": null,
+  "answer_relevance": null,
+  "context_precision": null,
+  "context_recall": null,
+  "saved_at": "2026-05-19T06:31:20.058974+00:00"
+}

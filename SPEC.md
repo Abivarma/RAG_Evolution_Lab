@@ -220,6 +220,8 @@ These are the sins Stage 2 fixes. Showing the *bad* version is what makes the co
 
 **Library choice rationale:** LangGraph won the 2025-2026 orchestration race because it gives you proper state machines with cycles, conditional edges, and persistence — which CrewAI and AutoGen don't do as cleanly. CrewAI is great for sequential role-play workflows; LangGraph is what you want when the graph has loops and conditional branches.
 
+**Eval benchmark: MultiHopRAG only.** Do NOT evaluate Stage 3 on RAGBench. RAGBench provides exactly 5 pre-selected passages per question — the validator loop adds no value on single-hop closed-corpus queries. Stage 3's value is only visible on multi-hop open-corpus questions where query decomposition and self-correction matter. Use `--benchmark multihop`.
+
 ## 2.5 Stage 4 — GraphRAG
 
 ```
@@ -486,14 +488,27 @@ We use **abstracts only**, not full text. Reasoning: full-text PDFs total 1.1TB 
 
 We subset to 10K filings because: (a) we have warm storage to archive intermediate artifacts so we can be more generous, (b) 10K filings is enough to make vectorless meaningfully challenged (filing router becomes non-trivial), (c) less than 245K means tree build completes in days not weeks.
 
-## 3.2 The three eval sets
+## 3.2 The eval sets
 
-| Eval set | Source | Size | Use case |
-|---|---|---|---|
-| **RAGBench** | `galileo-ai/ragbench` | 100K labeled examples, 12 sub-datasets | Stages 0, 1, 2, 3 — single-hop, multi-domain |
-| **MultiHop-RAG** | `yixuantt/MultiHop-RAG` | Multi-hop queries with evidence chains | Stages 4, 8 — graph traversal & iterative |
-| **FinDER** | `Linq-AI-Research/FinDER` | 5,703 expert-labeled 10-K QA triplets | Stages 5, 6 — vectorless on SEC |
-| FinanceBench (supplementary) | `PatronusAI/financebench` | 150 sample QA, full set on GitHub | Stages 5, 6 — comparable to PageIndex's 98.7% benchmark |
+> **Learned during implementation:** RAGBench alone is insufficient for Stages 0-3. It provides exactly 5 pre-selected passages per question (closed-corpus reranking), so Recall@K is permanently locked at 0.80 regardless of retrieval method. Only MRR and nDCG@10 vary on RAGBench. Use SciFact as the open-corpus Recall@K benchmark alongside RAGBench.
+
+| Eval set | HuggingFace ID | Size | Primary use | Metrics |
+|---|---|---|---|---|
+| **SciFact** | `BeIR/scifact` | 300 queries, 5,183 docs, ~1 relevant/query | S0-S3 — open-corpus Recall@K | Recall@5/10/20, MRR, nDCG@10 |
+| **RAGBench TechQA** | `rungalileo/ragbench` (techqa) | 50 queries, 5 passages/query | S0-S3 — closed-corpus ranking quality | MRR, nDCG@10 only (Recall locked) |
+| **MultiHop-RAG** | `yixuantt/MultiHopRAG` | 2,556 queries, 609-article corpus | S3, S4, S8 — multi-hop reasoning | Recall@K, evidence chain coverage |
+| **FinDER** | `Linq-AI-Research/FinDER` | 5,703 expert-labeled 10-K QA triplets | S5, S6 — vectorless on SEC | Accuracy, Recall@K |
+| FinanceBench (supplementary) | `PatronusAI/financebench` | 150 sample QA | S5, S6 — comparable to PageIndex's 98.7% | Accuracy |
+
+**Benchmark assignment summary:**
+- S0 BM25: SciFact + RAGBench
+- S1 Naive RAG: SciFact + RAGBench
+- S2 Advanced RAG: SciFact + RAGBench (+ ablation runs)
+- S3 Agentic RAG: **MultiHopRAG only** (RAGBench gives misleading results on agentic stages)
+- S4 GraphRAG: **MultiHopRAG only**
+- S5 Vectorless: FinDER + FinanceBench
+- S6 Hybrid: FinDER + FinanceBench
+- S8 CoRAG: **MultiHopRAG only**
 
 ## 3.3 Storage tier strategy
 

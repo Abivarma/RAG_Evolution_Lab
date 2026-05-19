@@ -37,10 +37,27 @@ class Stage1Harness(EvalHarness):
         return self.retriever.retrieve(query, top_k=top_k)
 
     def retrieve_item(self, item: dict[str, Any], top_k: int = 10) -> list[str]:
-        """Use dense embedding ranking for closed-corpus items (e.g. RAGBench)."""
+        """Dense retrieval for closed-corpus items.
+
+        For large corpora (>500 passages, e.g. SciFact with 5,183 docs),
+        BM25 pre-filters to top-200 candidates first, then BGE-M3 reranks
+        those 200. This gives representative dense retrieval results without
+        encoding tens of thousands of documents per query.
+        """
         if "passages" in item:
+            passages = item["passages"]
+            # BM25 pre-filter for large corpora to keep dense eval tractable
+            BM25_PREFILTER_THRESHOLD = 500
+            BM25_PREFILTER_K = 200
+            if len(passages) > BM25_PREFILTER_THRESHOLD:
+                from stage_0.retriever import BM25Retriever
+                bm25 = BM25Retriever()
+                candidate_ids = bm25.retrieve_from_passages(
+                    item["query"], passages, top_k=BM25_PREFILTER_K
+                )
+                passages = {cid: passages[cid] for cid in candidate_ids}
             return self.embedder.embed_and_rank_passages(
-                item["query"], item["passages"], top_k=top_k
+                item["query"], passages, top_k=top_k
             )
         return self.retrieve(item["query"], top_k=top_k)
 
@@ -65,9 +82,10 @@ def main() -> None:
         device=cfg["embedding"]["device"],
     )
 
-    # For closed-corpus benchmarks (ragbench), we don't need Qdrant.
-    # For open-corpus (future stages), load_pipeline() connects to Qdrant.
-    if args.benchmark == "ragbench":
+    # Closed-corpus benchmarks (ragbench, scifact, multihop) carry per-query passages.
+    # Dense retrieval runs embed_and_rank_passages() — no Qdrant needed.
+    CLOSED_CORPUS_BENCHMARKS = {"ragbench", "scifact", "multihop"}
+    if args.benchmark in CLOSED_CORPUS_BENCHMARKS:
         # Closed-corpus: retrieval via dense embedding over per-query passages
         generator = OllamaGenerator(
             model=cfg["llm"]["model"],

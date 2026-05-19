@@ -46,9 +46,9 @@ def main() -> None:
         cfg = tomllib.load(fh)
 
     index_path = Path(cfg["data"]["index_path"])
-    # Closed-corpus benchmarks (ragbench) carry their own passages per query —
-    # no pre-built arXiv index is needed for those.
-    CLOSED_CORPUS_BENCHMARKS = {"ragbench"}
+    # Closed-corpus benchmarks carry their own passages per query —
+    # no pre-built arXiv index is needed; BM25 is built fresh per query.
+    CLOSED_CORPUS_BENCHMARKS = {"ragbench", "scifact", "multihop"}
     if args.benchmark in CLOSED_CORPUS_BENCHMARKS:
         retriever = BM25Retriever(k1=cfg["bm25"]["k1"], b=cfg["bm25"]["b"])
     elif not index_path.exists():

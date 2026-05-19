@@ -118,27 +118,32 @@ def load_scifact(n_samples: int | None = None) -> list[dict[str, Any]]:
         for row in corpus_ds
     }
 
-    qrels: dict[str, dict[str, int]] = defaultdict(dict)
+    qrels: dict[str, dict[str, str]] = defaultdict(dict)
     for row in qrels_ds:
-        qrels[str(row["query-id"])][row["corpus-id"]] = row["score"]
+        # Normalise both IDs to strings for consistent matching with corpus dict keys
+        qrels[str(row["query-id"])][str(row["corpus-id"])] = row["score"]
 
-    queries: list[dict] = [
+    # Only include queries that have qrels (300 of the 1,109 total queries)
+    queries_with_qrels: list[dict] = [
         {"_id": row["_id"], "text": row["text"] or row["title"]}
         for row in queries_ds
+        if row["_id"] in qrels
     ]
     if n_samples:
-        queries = queries[:n_samples]
+        queries_with_qrels = queries_with_qrels[:n_samples]
 
     results = []
-    for q in queries:
+    for q in queries_with_qrels:
         qid = q["_id"]
-        query_qrels = qrels.get(qid, {})
+        query_qrels = qrels[qid]
         relevant_ids: set[str] = {cid for cid, score in query_qrels.items() if score > 0}
 
         results.append({
             "id": f"scifact_{qid}",
             "query": q["text"],
-            "passages": corpus,          # full 5,183-doc corpus for fair comparison
+            # Pass full corpus — harnesses use BM25 pre-filtering internally
+            # (retrieve_from_passages builds a fresh BM25 per query, which is fast)
+            "passages": corpus,
             "relevant_ids": relevant_ids,
             "answer": "",
         })

@@ -47,10 +47,16 @@ class Stage2Pipeline:
     ) -> list[str]:
         """Full Stage 2 pipeline over a closed-corpus passages dict.
 
-        1. Query rewriting (if enabled): expand to N+1 queries
-        2. Hybrid BM25+dense RRF per query, fuse all ranked lists
-        3. Cross-encoder reranker top-50 -> top-k
+        1. BM25 pre-filter to top-200 for corpora > 500 docs (e.g. SciFact 5,183 docs)
+        2. Query rewriting (if enabled): expand to N+1 queries
+        3. Hybrid BM25+dense RRF per query, fuse all ranked lists
+        4. Cross-encoder reranker top-50 -> top-k
         """
+        # Pre-filter large corpora so dense encoding stays tractable
+        if len(passages) > 500:
+            bm25_ids = self.hybrid._bm25_rank(query, passages)[:200]
+            passages = {cid: passages[cid] for cid in bm25_ids}
+
         queries = self.rewriter.rewrite(query) if self.flags.use_query_rewriting else [query]
 
         all_ranked: list[list[str]] = []
